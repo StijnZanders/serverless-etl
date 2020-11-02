@@ -1,3 +1,4 @@
+import os
 from models.operator import Operator
 
 class PythonOperator(Operator):
@@ -26,7 +27,7 @@ class PythonOperator(Operator):
                     "description": self.description,
                     "runtime": "python38",
                     "available_memory_mb": 128,
-                    "service_account_email": "cloudfunctions@serverless-etl-test.iam.gserviceaccount.com",
+                    "service_account_email": os.environ["SERVICE_ACCOUNT_EMAIL"],
                     "source_archive_bucket": "${google_storage_bucket.bucket.name}",
                     "source_archive_object": "${google_storage_bucket_object.topic_"+self.task_id+".name}",
                     "event_trigger": {
