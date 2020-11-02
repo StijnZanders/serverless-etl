@@ -1,5 +1,7 @@
 import os
 from models.operator import Operator
+import inspect
+import zipfile
 
 class PythonOperator(Operator):
 
@@ -10,15 +12,36 @@ class PythonOperator(Operator):
         self.python_callable = python_callable
         self.op_kwargs = op_kwargs
 
+    def _write_cloud_function_code(self):
+
+        code = inspect.getsource(self.python_callable)
+
+        code += "def cloudfunction_execution(event, context):\n"\
+        f"  {self.python_callable.__name__}({self.op_kwargs})"
+
+
+        filename = f"output/{self.dag.dag_id}/{self.task_id}/main.py"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(filename,"w") as file:
+            file.write(code)
+
+        zip_file = zipfile.ZipFile(f"output/{self.dag.dag_id}/{self.task_id}" + '.zip', 'w')
+        zip_file.write(filename, "main.py")
+        zip_file.close()
+
+        print(code)
 
     def get_terraform_json(self) -> {}:
+
+        self._write_cloud_function_code()
 
         resources = {
             "google_storage_bucket_object": [{
                 f"topic_{self.task_id}": {
                     "name": f"{self.task_id}.zip",
                     "bucket": "${google_storage_bucket.bucket.name}",
-                    "source": f"test_directory/{self.task_id}.zip"#f"./{self.dag.dag_id}/{self.task_id}"
+                    "source": f"{self.dag.dag_id}/{self.task_id}.zip"
                 }
             }],
             "google_cloudfunctions_function": [{
@@ -33,7 +56,8 @@ class PythonOperator(Operator):
                     "event_trigger": {
                         "event_type": "providers/cloud.pubsub/eventTypes/topic.publish",
                         "resource": self.dag.dag_id
-                    }
+                    },
+                    "entry_point": "cloudfunction_execution"
                 }
             }]
         }

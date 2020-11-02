@@ -19,7 +19,7 @@ class terraform:
         top_level_dags = self._get_objects(DAG)
         configuration = self._get_terraform_configuration_dags(top_level_dags)
 
-        with open("resources.tf.json","w") as file:
+        with open("output/resources.tf.json","w") as file:
             file.write(json.dumps(configuration, indent=4))
 
     def _get_terraform_configuration_dags(self, dags):
@@ -34,7 +34,6 @@ class terraform:
 
             for task in dag_tasks:
                 configurations.append(task.get_terraform_json())
-                #self._upload_task(task)
 
         terraform_configuration = self._combine_configurations(configurations)
 

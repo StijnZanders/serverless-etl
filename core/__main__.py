@@ -1,6 +1,8 @@
 from cli import cli_parser
 import os
 import argcomplete
+from dotenv import load_dotenv
+load_dotenv()
 
 def main():
     """Main executable function"""
