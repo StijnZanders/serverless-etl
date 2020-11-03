@@ -1,6 +1,7 @@
 from models.dag import DAG
 from operators.python_operator import PythonOperator
 from datetime import timedelta
+import pandas
 
 
 default_args = {
@@ -15,7 +16,11 @@ test_dag = DAG(
 )
 
 def test(arg):
-    print(f"Test {arg}")
+    import pandas as pd
+    from datetime import datetime
+
+    df = pd.DataFrame([datetime.now()], columns=["current_timestamp"])
+    df.to_gbq("test_dataset.test_table", if_exists="append")
 
 
 test_task = PythonOperator(
@@ -23,7 +28,8 @@ test_task = PythonOperator(
     task_id="test_task",
     description="Test task",
     python_callable=test,
-    op_kwargs={'arg': 'great test'}
+    op_kwargs={'arg': 'great test'},
+    requirements=["pandas==1.0.0","pandas_gbq==0.14.0"]
 )
 
 test_dag2 = DAG(
@@ -38,5 +44,6 @@ test_task2 = PythonOperator(
     task_id="test_task2",
     description="Test task2",
     python_callable=test,
-    op_kwargs={'arg': 'great test2'}
+    op_kwargs={'arg': 'great test2'},
+    requirements=["pandas==1.0.0","pandas_gbq==0.14.0"]
 )

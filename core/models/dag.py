@@ -15,20 +15,24 @@ class DAG:
 
     def get_terraform_json(self) -> {}:
 
-        resources = {"google_pubsub_topic": [{
-            f"topic_{self.dag_id}": {
-                "name": self.dag_id
+        configuration = {
+            "resource": {
+                "google_pubsub_topic": [{
+                    f"topic_{self.dag_id}": {
+                        "name": self.dag_id
+                    }
+                }], "google_cloud_scheduler_job": [{
+                    f"job_{self.dag_id}": {
+                        "name": self.dag_id,
+                        "description": self.description,
+                        "schedule": self.schedule_interval,
+                        "pubsub_target": {
+                            "topic_name": "${google_pubsub_topic.topic_" + self.dag_id + ".id}",
+                            "data": "dGVzdA=="
+                        }
+                    }
+                }]
             }
-        }], "google_cloud_scheduler_job": [{
-            f"job_{self.dag_id}": {
-                "name": self.dag_id,
-                "description": self.description,
-                "schedule": self.schedule_interval,
-                "pubsub_target": {
-                    "topic_name": "${google_pubsub_topic.topic_" + self.dag_id + ".id}",
-                    "data": "dGVzdA=="
-                }
-            }
-        }]}
+        }
 
-        return resources
+        return configuration
