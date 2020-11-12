@@ -6,6 +6,8 @@ import zipfile
 class PythonOperator(Operator):
 
     def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, requirements: []):
+        super().__init__()
+
         self.dag = dag
         self.task_id = task_id
         self.description = description
