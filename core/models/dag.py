@@ -18,8 +18,8 @@ class DAG:
         configuration = {
             "resource": {
                 "google_pubsub_topic": [{
-                    f"topic_{self.dag_id}": {
-                        "name": self.dag_id
+                    f"dag_{self.dag_id}": {
+                        "name": f"dag_{self.dag_id}"
                     }
                 }], "google_cloud_scheduler_job": [{
                     f"job_{self.dag_id}": {
@@ -27,7 +27,7 @@ class DAG:
                         "description": self.description,
                         "schedule": self.schedule_interval,
                         "pubsub_target": {
-                            "topic_name": "${google_pubsub_topic.topic_" + self.dag_id + ".id}",
+                            "topic_name": "${google_pubsub_topic.dag_" + self.dag_id + ".id}",
                             "data": "dGVzdA=="
                         }
                     }

@@ -6,7 +6,6 @@ class Operator:
         self.downstream_tasks = []
         self.upstream_tasks = []
 
-
     def __lshift__(self, task2):
         """Implements Task << Task"""
         self.set_upstream(task2)

@@ -19,19 +19,38 @@ class PythonOperator(Operator):
 
         code = inspect.getsource(self.python_callable)
 
-        code += "def cloudfunction_execution(event, context):\n"\
-        f"  {self.python_callable.__name__}({self.op_kwargs})"
+        code += "\ndef cloudfunction_execution(event, context):\n"\
+                f"\t{self.python_callable.__name__}({self.op_kwargs})\n"\
+                f"{self._write_to_pub_sub_code()}"
+
         main = f"output/{self.dag.dag_id}/{self.task_id}/main.py"
         os.makedirs(os.path.dirname(main), exist_ok=True)
 
-        with open(main,"w") as file:
+        with open(main, "w") as file:
             file.write(code)
 
         requirements = f"output/{self.dag.dag_id}/{self.task_id}/requirements.txt"
 
+        self.requirements.extend(["google-cloud","google-cloud-pubsub"])
+
         with open(requirements,"w") as file:
             file.write("\n".join(self.requirements))
 
+    def _write_to_pub_sub_code(self):
+
+        code = "\tfrom google.cloud import pubsub_v1\n"\
+               "\timport json\n"\
+               "\timport os\n"\
+               "\tPROJECT_ID = 'serverless-etl-test'\n"\
+               "\tpublisher = pubsub_v1.PublisherClient()\n"\
+               f"\ttopic_name = 'task_{self.dag.dag_id}_{self.task_id}'\n"\
+               "\ttopic_path = publisher.topic_path(PROJECT_ID, topic_name)\n"\
+               "\tmessage_json = json.dumps({'data': {'message': 'test'},})\n"\
+               "\tmessage_bytes = message_json.encode('utf-8')\n"\
+               "\tpublish_future = publisher.publish(topic_path, data=message_bytes)\n"\
+               "\tpublish_future.result()"
+
+        return code
 
     def get_terraform_json(self) -> {}:
 
@@ -39,6 +58,11 @@ class PythonOperator(Operator):
 
         source_dir = f"{self.dag.dag_id}/{self.task_id}"
         file_path = f"{self.dag.dag_id}/{self.task_id}.zip"
+
+        if len(self.upstream_tasks) > 0:
+            trigger_resource = f"task_{self.dag.dag_id}_{self.upstream_tasks[0]}"
+        else:
+            trigger_resource = f"dag_{self.dag.dag_id}"
 
         configuration = {
             "data": {
@@ -69,9 +93,14 @@ class PythonOperator(Operator):
                         "source_archive_object": "${google_storage_bucket_object.task_"+self.task_id+".name}",
                         "event_trigger": {
                             "event_type": "providers/cloud.pubsub/eventTypes/topic.publish",
-                            "resource": self.dag.dag_id
+                            "resource": trigger_resource
                         },
                         "entry_point": "cloudfunction_execution"
+                    }
+                }],
+                "google_pubsub_topic": [{
+                    f"task_{self.dag.dag_id}_{self.task_id}": {
+                        "name": f"task_{self.dag.dag_id}_{self.task_id}"
                     }
                 }]
             }
