@@ -20,8 +20,18 @@ class PythonOperator(Operator):
         code = inspect.getsource(self.python_callable)
 
         code += "\ndef cloudfunction_execution(event, context):\n"\
-                f"\t{self.python_callable.__name__}({self.op_kwargs})\n"\
-                f"{self._write_to_pub_sub_code()}"
+                f"    outputs = {self.python_callable.__name__}({self.op_kwargs})\n"\
+                f"\n    if outputs is None:\n"\
+                f"        outputs = ['done']\n"\
+                f"\n    topic_name = 'task_{self.dag.dag_id}_{self.task_id}'\n"\
+
+
+        pubsub_code = inspect.getsourcelines(self._write_to_pub_sub_code)
+        code += "\n    def call_pub_sub(message, topic_name):\n"
+        code += "".join(pubsub_code[0][1:])
+
+        code += "\n    for output in outputs:\n"
+        code += "        call_pub_sub(output, topic_name)\n"
 
         main = f"output/{self.dag.dag_id}/{self.task_id}/main.py"
         os.makedirs(os.path.dirname(main), exist_ok=True)
@@ -36,21 +46,17 @@ class PythonOperator(Operator):
         with open(requirements,"w") as file:
             file.write("\n".join(self.requirements))
 
-    def _write_to_pub_sub_code(self):
+    def _write_to_pub_sub_code(self, message, topic_name):
+        from google.cloud import pubsub_v1
+        import json
 
-        code = "\tfrom google.cloud import pubsub_v1\n"\
-               "\timport json\n"\
-               "\timport os\n"\
-               "\tPROJECT_ID = 'serverless-etl-test'\n"\
-               "\tpublisher = pubsub_v1.PublisherClient()\n"\
-               f"\ttopic_name = 'task_{self.dag.dag_id}_{self.task_id}'\n"\
-               "\ttopic_path = publisher.topic_path(PROJECT_ID, topic_name)\n"\
-               "\tmessage_json = json.dumps({'data': {'message': 'test'},})\n"\
-               "\tmessage_bytes = message_json.encode('utf-8')\n"\
-               "\tpublish_future = publisher.publish(topic_path, data=message_bytes)\n"\
-               "\tpublish_future.result()"
-
-        return code
+        PROJECT_ID = 'serverless-etl-test'
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path(PROJECT_ID, topic_name)
+        message_json = json.dumps({'data': {'message': message},})
+        message_bytes = message_json.encode('utf-8')
+        publish_future = publisher.publish(topic_path, data=message_bytes)
+        publish_future.result()
 
     def get_terraform_json(self) -> {}:
 
