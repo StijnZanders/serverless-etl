@@ -1,5 +1,5 @@
 import argparse
-from cli.generate_terraform import terraform
+from limber.cli.generate_terraform import terraform
 
 def get_parser():
     cli_parser = argparse.ArgumentParser(description='List the content of a folder')

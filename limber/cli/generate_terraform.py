@@ -3,8 +3,8 @@ import glob
 import importlib
 import sys
 import hashlib
-from models.dag import DAG
-from models.operator import Operator
+from limber.models.dag import DAG
+from limber.models.operator import Operator
 import json
 
 

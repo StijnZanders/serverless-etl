@@ -1,5 +1,5 @@
 import os
-from models.operator import Operator
+from limber.models.operator import Operator
 import inspect
 import zipfile
 
