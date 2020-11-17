@@ -21,7 +21,7 @@ with open ("README.md", "r") as readme:
 
 setuptools.setup(
     name="limber",
-    version="0.0.4",
+    version="0.0.5",
     scripts=[],
     author="Stijn Zanders",
     author_email="zandersstijn@gmail.com",
