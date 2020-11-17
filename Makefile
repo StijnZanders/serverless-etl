@@ -1,7 +1,7 @@
 
 test-cli:
-	python core/cli/cli.py --gcp-keyfile "test key file" --gcp-project "test project"
+	python limber/cli/cli.py --gcp-keyfile "test key file" --gcp-project "test project"
 test:
-	python core
+	python limber
 deploy:
 	terraform apply
