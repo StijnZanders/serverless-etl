@@ -1,5 +1,5 @@
-from models.dag import DAG
-from operators.python_operator import PythonOperator
+from limber.models.dag import DAG
+from limber.operators.python_operator import PythonOperator
 from datetime import timedelta
 import pandas
 
