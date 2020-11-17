@@ -14,14 +14,14 @@ Authors:
     Stijn Zanders <zandersstijn@gmail.com>
 '''
 
-from setuptools import setup
+import setuptools
 
 with open ("README.md", "r") as readme:
     long_description = readme.read()
 
-setup(
+setuptools.setup(
     name="limber",
-    version="0.0.1",
+    version="0.0.3",
     scripts=[],
     author="Stijn Zanders",
     author_email="zandersstijn@gmail.com",
@@ -29,10 +29,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/StijnZanders/limber",
-    packages=[],
+    packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache Software License"
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent"
     ]
 )

@@ -144,3 +144,4 @@ key.json
 .terraform
 .idea
 .ipynb
+.pypirc
