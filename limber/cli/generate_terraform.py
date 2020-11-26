@@ -3,23 +3,22 @@ import glob
 import importlib
 import sys
 import hashlib
-from limber.models.dag import DAG
-from limber.models.operator import Operator
+from models.dag import DAG
+from models.operator import Operator
 import json
 
 
 class terraform:
 
-    def __init__(self):
-
-        pass
+    def __init__(self, folder):
+        self.folder = folder
 
     def create_terraform_configuration(self):
 
         top_level_dags = self._get_objects(DAG)
         configuration = self._get_terraform_configuration_dags(top_level_dags)
 
-        with open("output/resources.tf.json","w") as file:
+        with open(f"{self.folder}/resources.tf.json","w") as file:
             file.write(json.dumps(configuration, indent=4))
 
     def _get_terraform_configuration_dags(self, dags):
@@ -33,7 +32,7 @@ class terraform:
             dag_tasks = [task for task in tasks if task.dag.dag_id == dag.dag_id]
 
             for task in dag_tasks:
-                configurations.append(task.get_terraform_json())
+                configurations.append(task.get_terraform_json(folder=self.folder))
 
         return self._combine_configurations(configurations)
 

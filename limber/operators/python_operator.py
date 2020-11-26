@@ -1,5 +1,5 @@
 import os
-from limber.models.operator import Operator
+from models.operator import Operator
 import inspect
 import zipfile
 
@@ -15,7 +15,7 @@ class PythonOperator(Operator):
         self.op_kwargs = op_kwargs
         self.requirements = requirements
 
-    def _write_cloud_function_code(self):
+    def _write_cloud_function_code(self, folder):
 
         code = inspect.getsource(self.python_callable)
 
@@ -33,13 +33,13 @@ class PythonOperator(Operator):
         code += "\n    for output in outputs:\n"
         code += "        call_pub_sub(output, topic_name)\n"
 
-        main = f"output/{self.dag.dag_id}/{self.task_id}/main.py"
+        main = f"{folder}/{self.dag.dag_id}/{self.task_id}/main.py"
         os.makedirs(os.path.dirname(main), exist_ok=True)
 
         with open(main, "w") as file:
             file.write(code)
 
-        requirements = f"output/{self.dag.dag_id}/{self.task_id}/requirements.txt"
+        requirements = f"{folder}/{self.dag.dag_id}/{self.task_id}/requirements.txt"
 
         self.requirements.extend(["google-cloud","google-cloud-pubsub"])
 
@@ -58,9 +58,9 @@ class PythonOperator(Operator):
         publish_future = publisher.publish(topic_path, data=message_bytes)
         publish_future.result()
 
-    def get_terraform_json(self) -> {}:
+    def get_terraform_json(self, *, folder) -> {}:
 
-        self._write_cloud_function_code()
+        self._write_cloud_function_code(folder=folder)
 
         source_dir = f"{self.dag.dag_id}/{self.task_id}"
         file_path = f"{self.dag.dag_id}/{self.task_id}.zip"
