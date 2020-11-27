@@ -6,7 +6,7 @@ import yaml
 import subprocess
 import json
 from pathlib import Path
-from cli.generate_terraform import terraform
+from .cli.generate_terraform import terraform
 load_dotenv()
 
 @click.group()
