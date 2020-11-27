@@ -1,4 +1,3 @@
-from limber.cli import cli_parser
 import click
 from dotenv import load_dotenv
 import os
