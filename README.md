@@ -21,6 +21,9 @@ Google Cloud APIs enabled
 3. CloudScheduler API
 4. Cloud Build API
 
+Other
+1. Create app engine in your project: https://console.cloud.google.com/appengine
+
 Service account needed roles:
 1. Pub/Sub Editor
 2. Service Account User
