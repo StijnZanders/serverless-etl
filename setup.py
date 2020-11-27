@@ -21,8 +21,8 @@ with open ("README.md", "r") as readme:
 
 setuptools.setup(
     name="limber",
-    version="0.0.10",
-    scripts=[],
+    version="0.0.11",
+    scripts=["limber"],
     author="Stijn Zanders",
     author_email="zandersstijn@gmail.com",
     description="Serverless DAGs orchestrated via Python",
