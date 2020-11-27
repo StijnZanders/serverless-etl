@@ -15,12 +15,20 @@ class PythonOperator(Operator):
         self.op_kwargs = op_kwargs
         self.requirements = requirements
 
+    def _get_func_parameters(self, kwargs) -> str:
+
+        parameters = []
+        for key, value in kwargs.items():
+            parameters.append(f"{key}='{value}'")
+
+        return ",".join(parameters)
+
     def _write_cloud_function_code(self, folder):
 
         code = inspect.getsource(self.python_callable)
 
         code += "\ndef cloudfunction_execution(event, context):\n"\
-                f"    outputs = {self.python_callable.__name__}({self.op_kwargs})\n"\
+                f"    outputs = {self.python_callable.__name__}({self._get_func_parameters(self.op_kwargs)})\n"\
                 f"\n    if outputs is None:\n"\
                 f"        outputs = ['done']\n"\
                 f"\n    topic_name = 'task_{self.dag.dag_id}_{self.task_id}'\n"\
