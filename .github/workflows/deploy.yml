@@ -39,8 +39,8 @@ jobs:
       - name: Publish distribution 📦 to PyPI
         if: startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
-          with:
-            password: ${{ secrets.PYPI_TOKEN }}
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
       - name: If master branch deploy to PyPi test
         if: steps.extract_branch.outputs.target_branch == 'master'
         run: |
