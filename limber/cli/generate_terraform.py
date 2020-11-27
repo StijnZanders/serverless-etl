@@ -3,8 +3,8 @@ import glob
 import importlib
 import sys
 import hashlib
-from models.dag import DAG
-from models.operator import Operator
+from ..models.dag import DAG
+from ..models.operator import Operator
 import json
 
 

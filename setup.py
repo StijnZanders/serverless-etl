@@ -22,7 +22,10 @@ with open ("README.md", "r") as readme:
 setuptools.setup(
     name="limber",
     version="0.0.11",
-    scripts=["limber/__main__"],
+    entry_points={
+            'console_scripts': ['limber=limber.__main__:cli'],
+        },
+    scripts=[],
     author="Stijn Zanders",
     author_email="zandersstijn@gmail.com",
     description="Serverless DAGs orchestrated via Python",
