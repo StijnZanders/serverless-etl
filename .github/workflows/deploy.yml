@@ -1,0 +1,26 @@
+name: Deploy
+
+on: pull_request
+
+jobs:
+  deploy:
+    name: Deploy to PyPi
+    runs-on: ubunutu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=target_branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Test for Pull request
+        run: echo $steps.extract_branch.outputs.target_branch
+      - name: If master branch deploy to PyPi test
+        if: steps.extract_branch.outputs.target_branch == 'master'
+        run: |
+          echo "Master branch"
+      - name: If production branch deploy to PyPi
+        if: steps.extract_branch.outputs.target_branch == 'production'
+        run: |
+          echo "Production branch"
