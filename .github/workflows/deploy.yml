@@ -1,10 +1,14 @@
 name: Deploy
 
-on: pull_request
+on:
+    push:
+        branches:
+          - master
+          - production
 
 jobs:
   deploy:
-    name: Deploy to PyPi
+    name: Deploy to PyPI
     runs-on: ubuntu-latest
 
     steps:
@@ -31,20 +35,14 @@ jobs:
           --sdist
           --wheel
           --outdir dist/
-      - name: Publish distribution 📦 to Test PyPI
+      - name: Publish distribution 📦 to Test PyPI for master
+        if: steps.extract_branch.outputs.target_branch == 'master'
         uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.PYPI_TEST_TOKEN }}
           repository_url: https://test.pypi.org/legacy/
-      - name: Publish distribution 📦 to PyPI
+      - name: Publish distribution 📦 to PyPI for production
+        if: steps.extract_branch.outputs.target_branch == 'production'
         uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.PYPI_TOKEN }}
-      - name: If master branch deploy to PyPi test
-        if: steps.extract_branch.outputs.target_branch == 'master'
-        run: |
-          echo "Master branch"
-      - name: If production branch deploy to PyPi
-        if: steps.extract_branch.outputs.target_branch == 'production'
-        run: |
-          echo "Production branch"
