@@ -8,14 +8,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=target_branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
-      - name: Test for Pull request
-        run: echo $steps.extract_branch.outputs.target_branch
+      - name: Install pypa/build
+        run: >-
+          python -m
+          pip install
+          build
+          --user
+      - name: Build a binary wheel and a source tarball
+        run: >-
+          python -m
+          build
+          --sdist
+          --wheel
+          --outdir dist/
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_TEST_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
       - name: If master branch deploy to PyPi test
         if: steps.extract_branch.outputs.target_branch == 'master'
         run: |
