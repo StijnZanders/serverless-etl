@@ -8,25 +8,40 @@ from pathlib import Path
 from .cli.generate_terraform import terraform
 load_dotenv()
 
+TERRAFORM_DIRECTORY = "terraform_plan"
+CONFIG_FILE = "limber.yaml"
+
 @click.group()
 def cli():
     """
     Just the main cli
     """
+    load_environment_variables()
+
+
+def load_environment_variables():
+    absolute_config_file = os.path.abspath(CONFIG_FILE)
+
+    with open(absolute_config_file) as file:
+        yaml_config = yaml.safe_load(file.read())
+
+    with open(yaml_config["cloud"]["key_file"]) as file:
+        key_file = json.loads(file.read())
+
+    os.environ["SERVICE_ACCOUNT_EMAIL"] = key_file["client_email"]
+
 
 @cli.command("init")
-@click.option("--config-file")
-def init(config_file):
+def init():
     """
     Intializes Limber
     """
-    directory = "terraform_plan"
 
     # Create a folder for the output
-    Path(directory).mkdir(exist_ok=True)
+    Path(TERRAFORM_DIRECTORY).mkdir(exist_ok=True)
 
     # Create initial terraform config there
-    absolute_config_file = os.path.abspath(config_file)
+    absolute_config_file = os.path.abspath(CONFIG_FILE)
 
     with open(absolute_config_file) as file:
         yaml_config = yaml.safe_load(file.read())
@@ -49,7 +64,7 @@ def init(config_file):
         }
     }
 
-    provider_config = f"{directory}/provider.tf.json"
+    provider_config = f"{TERRAFORM_DIRECTORY}/provider.tf.json"
     with open(provider_config,"w") as file:
         file.write(json.dumps(config, indent=4, sort_keys=False))
 
