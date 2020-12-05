@@ -15,12 +15,20 @@ class PythonOperator(Operator):
         self.op_kwargs = op_kwargs
         self.requirements = requirements
 
+    def _get_func_parameters(self, kwargs) -> str:
+
+        parameters = []
+        for key, value in kwargs.items():
+            parameters.append(f"{key}='{value}'")
+
+        return ",".join(parameters)
+
     def _write_cloud_function_code(self, folder):
 
         code = inspect.getsource(self.python_callable)
 
         code += "\ndef cloudfunction_execution(event, context):\n"\
-                f"    outputs = {self.python_callable.__name__}({self.op_kwargs})\n"\
+                f"    outputs = {self.python_callable.__name__}({self._get_func_parameters(self.op_kwargs)})\n"\
                 f"\n    if outputs is None:\n"\
                 f"        outputs = ['done']\n"\
                 f"\n    topic_name = 'task_{self.dag.dag_id}_{self.task_id}'\n"\
@@ -50,7 +58,7 @@ class PythonOperator(Operator):
         from google.cloud import pubsub_v1
         import json
 
-        PROJECT_ID = 'serverless-etl-test'
+        PROJECT_ID = os.environ["GCP_PROJECT"]
         publisher = pubsub_v1.PublisherClient()
         topic_path = publisher.topic_path(PROJECT_ID, topic_name)
         message_json = json.dumps({'data': {'message': message},})

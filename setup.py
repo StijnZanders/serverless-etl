@@ -15,13 +15,14 @@ Authors:
 '''
 
 import setuptools
+import versioneer
 
 with open ("README.md", "r") as readme:
     long_description = readme.read()
 
 setuptools.setup(
     name="limber",
-    version="0.0.13",
+    version=versioneer.get_version(),
     entry_points={
             'console_scripts': ['limber=limber.__main__:cli'],
         },
@@ -37,5 +38,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent"
-    ]
+    ],
+    cmdclass=versioneer.get_cmdclass(),
 )
