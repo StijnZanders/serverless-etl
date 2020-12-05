@@ -56,8 +56,8 @@ class PythonOperator(Operator):
 
     def _write_to_pub_sub_code(self, message, topic_name):
         from google.cloud import pubsub_v1
-        import json
         import os
+        import json
 
         PROJECT_ID = os.environ["GCP_PROJECT"]
         publisher = pubsub_v1.PublisherClient()
