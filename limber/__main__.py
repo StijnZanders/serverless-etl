@@ -29,7 +29,6 @@ def load_environment_variables():
         key_file = json.loads(file.read())
 
     os.environ["SERVICE_ACCOUNT_EMAIL"] = key_file["client_email"]
-    os.environ["CLOUD_PROJECT_ID"] = yaml_config["cloud"]["project"]
 
 
 @cli.command("init")
