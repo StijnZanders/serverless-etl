@@ -22,12 +22,26 @@ jobs:
         shell: bash
         run: echo "##[set-output name=target_branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
+      - name: Install bumpversion
+        run: pip install bump2version
       - name: Install pypa/build
         run: >-
           python -m
           pip install
           build
           --user
+      - name: Set-up git
+        run: |
+          git config --global user.email "zandersstijn@gmail.com"
+          git config --global user.name "Stijn Zanders"
+      - name: Bump version master
+        if: steps.extract_branch.outputs.target_branch == 'master'
+        run: |
+          bumpversion patch
+          git push
+      - name: Tag production
+        if: steps.extract_branch.outputs.target_branch == 'production'
+        run: bumpversion --tag release
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m

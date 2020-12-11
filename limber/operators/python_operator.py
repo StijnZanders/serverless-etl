@@ -56,9 +56,10 @@ class PythonOperator(Operator):
 
     def _write_to_pub_sub_code(self, message, topic_name):
         from google.cloud import pubsub_v1
+        import os
         import json
 
-        PROJECT_ID = 'serverless-etl-test'
+        PROJECT_ID = os.environ["GCP_PROJECT"]
         publisher = pubsub_v1.PublisherClient()
         topic_path = publisher.topic_path(PROJECT_ID, topic_name)
         message_json = json.dumps({'data': {'message': message},})
