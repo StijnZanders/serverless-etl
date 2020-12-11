@@ -41,7 +41,9 @@ jobs:
           git push
       - name: Tag production
         if: steps.extract_branch.outputs.target_branch == 'production'
-        run: bumpversion --tag release
+        run: |
+          bumpversion --tag release --no-commit
+          git push --tags
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m
