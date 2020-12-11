@@ -36,8 +36,11 @@ jobs:
           git config --global user.name "Stijn Zanders"
       - name: Bump version master
         if: steps.extract_branch.outputs.target_branch == 'master'
-        run: bumpversion patch
+        run: |
+          bumpversion patch
+          git push
       - name: Tag production
+        if: steps.extract_branch.outputs.target_branch == 'production'
         run: bumpversion --tag release
       - name: Build a binary wheel and a source tarball
         run: >-
