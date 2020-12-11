@@ -30,6 +30,10 @@ jobs:
           pip install
           build
           --user
+      - name: Set-up git
+        run: |
+          git config --global user.email "zandersstijn@gmail.com"
+          git config --global user.name "Stijn Zanders"
       - name: Bump version master
         if: steps.extract_branch.outputs.target_branch == 'master'
         run: bumpversion patch
