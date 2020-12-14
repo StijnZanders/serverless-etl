@@ -59,7 +59,7 @@ class PythonOperator(Operator):
         import os
         import json
 
-        PROJECT_ID = os.environ["GCP_PROJECT"]
+        PROJECT_ID = os.environ.get('GCP_PROJECT')
         publisher = pubsub_v1.PublisherClient()
         topic_path = publisher.topic_path(PROJECT_ID, topic_name)
         message_json = json.dumps({'data': {'message': message},})
