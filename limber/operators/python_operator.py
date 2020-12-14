@@ -59,7 +59,7 @@ class PythonOperator(Operator):
         import os
         import json
 
-        PROJECT_ID = os.environ.get('GCP_PROJECT')
+        PROJECT_ID = os.environ['GCP_PROJECT']
         publisher = pubsub_v1.PublisherClient()
         topic_path = publisher.topic_path(PROJECT_ID, topic_name)
         message_json = json.dumps({'data': {'message': message},})
@@ -101,9 +101,9 @@ class PythonOperator(Operator):
                     f"function_{self.task_id}": {
                         "name": f"{self.dag.dag_id}-{self.task_id}",
                         "description": self.description,
-                        "runtime": "python38",
+                        "runtime": "python37",
                         "available_memory_mb": 256,
-                        "service_account_email": os.environ["SERVICE_ACCOUNT_EMAIL"],
+                        "service_account_email": os.environ["CLOUD_FUNCTIONS_SERVICE_ACCOUNT_EMAIL"],
                         "source_archive_bucket": "${google_storage_bucket.bucket.name}",
                         "source_archive_object": "${google_storage_bucket_object.task_"+self.task_id+".name}",
                         "event_trigger": {

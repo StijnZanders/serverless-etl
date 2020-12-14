@@ -4,3 +4,4 @@ cloud:
     region: "europe-west1"
     key_file: "serverless-etl-test-9533f35451fe.json"
     default_bucket: "stijnzanders-serverless-etl-bucket"
+    cloud_functions_service_account: "cloudfunctions@serverless-etl-test.iam.gserviceaccount.com"
