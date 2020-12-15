@@ -48,11 +48,21 @@ test_task2 = PythonOperator(
     requirements=["pandas==1.0.0", "pandas_gbq==0.14.0"]
 )
 
+def test_with_context(arg, context):
+    import pandas as pd
+    from datetime import datetime
+
+    print(context)
+
+    df = pd.DataFrame([[datetime.now(), arg]], columns=["current_timestamp", "message"])
+    df.to_gbq("test_dataset.test_table", if_exists="append")
+
 test_task3 = PythonOperator(
     dag=test_dag,
     task_id="test_task3",
     description="Test task3",
-    python_callable=test,
+    python_callable=test_with_context,
+    provide_context=True,
     op_kwargs={'arg': 'great test3'},
     requirements=["pandas==1.0.0", "pandas_gbq==0.14.0"]
 )
