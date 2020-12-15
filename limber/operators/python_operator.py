@@ -5,7 +5,7 @@ import zipfile
 
 class PythonOperator(Operator):
 
-    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, requirements: []):
+    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, requirements: [], provide_context = False):
         super().__init__()
 
         self.dag = dag
@@ -14,6 +14,7 @@ class PythonOperator(Operator):
         self.python_callable = python_callable
         self.op_kwargs = op_kwargs
         self.requirements = requirements
+        self.provide_context = provide_context
 
     def _get_func_parameters(self, kwargs) -> str:
 
@@ -21,14 +22,25 @@ class PythonOperator(Operator):
         for key, value in kwargs.items():
             parameters.append(f"{key}='{value}'")
 
+        if self.provide_context:
+            parameters.append("context=data")
+
         return ",".join(parameters)
 
     def _write_cloud_function_code(self, folder):
 
         code = inspect.getsource(self.python_callable)
 
-        code += "\ndef cloudfunction_execution(event, context):\n"\
-                f"    outputs = {self.python_callable.__name__}({self._get_func_parameters(self.op_kwargs)})\n"\
+        code += "\ndef cloudfunction_execution(event, context):\n"
+
+        if self.provide_context:
+            code += "    import base64\n"\
+                    "    if 'data' in event:\n"\
+                    "        data = base64.b64decode(event['data']).decode('utf-8')\n"
+
+        parameters = self._get_func_parameters(self.op_kwargs)
+
+        code += f"    outputs = {self.python_callable.__name__}({parameters})\n"\
                 f"\n    if outputs is None:\n"\
                 f"        outputs = ['done']\n"\
                 f"\n    topic_name = 'task_{self.dag.dag_id}_{self.task_id}'\n"\
