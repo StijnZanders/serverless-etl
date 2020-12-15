@@ -34,9 +34,11 @@ class PythonOperator(Operator):
         code += "\ndef cloudfunction_execution(event, context):\n"
 
         if self.provide_context:
-            code += "    import base64\n"\
+            code += "    import base64\n" \
+                    "    import json\n" \
                     "    if 'data' in event:\n"\
-                    "        data = base64.b64decode(event['data']).decode('utf-8')\n"
+                    "        data = base64.b64decode(event['data']).decode('utf-8')\n"\
+                    "        data = json.loads(data)\n"
 
         parameters = self._get_func_parameters(self.op_kwargs)
 
