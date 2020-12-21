@@ -21,22 +21,15 @@ with open ("README.md", "r") as readme:
 
 setuptools.setup(
     name="limber",
-    version="0.0.28",
+    version="0.0.29",
     entry_points={
             'console_scripts': ['limber=limber.__main__:cli'],
         },
     scripts=[],
     install_requires=[
-        "json",
-        "datetime",
-        "inspect",
-        "os",
-        "unittest",
-        "yaml",
-        "pathlib",
-        "click",
-        "subprocess",
-        "dotenv",
+        "pyyaml==5.3.1",
+        "click==7.1.2",
+        "python-dotenv==0.15.0",
     ],
     author="Stijn Zanders",
     author_email="zandersstijn@gmail.com",
