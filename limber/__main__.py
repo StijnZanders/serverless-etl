@@ -25,11 +25,10 @@ def load_environment_variables():
     with open(absolute_config_file) as file:
         yaml_config = yaml.safe_load(file.read())
 
-    with open(yaml_config["cloud"]["key_file"]) as file:
-        key_file = json.loads(file.read())
-
-    os.environ["SERVICE_ACCOUNT_EMAIL"] = key_file["client_email"]
     os.environ["CLOUD_FUNCTIONS_SERVICE_ACCOUNT_EMAIL"] = yaml_config["cloud"]["cloud_functions_service_account"]
+
+    os.environ["TERRAFORM_ORGANIZATION"] = yaml_config["terraform"]["organization"]
+    os.environ["TERRAFORM_WORKSPACE"] = yaml_config["terraform"]["workspace"]
 
 
 @cli.command("init")
@@ -51,7 +50,6 @@ def init():
         "provider": {
             yaml_config["cloud"]["provider"]:
                 {
-                    "credentials": os.path.abspath(yaml_config["cloud"]["key_file"]),
                     "project": yaml_config["cloud"]["project"],
                     "region": yaml_config["cloud"]["region"]
                 }
@@ -60,6 +58,16 @@ def init():
             "google_storage_bucket": {
                 "bucket": {
                     "name": yaml_config["cloud"]["default_bucket"]
+                }
+            }
+        },
+        "terraform": {
+            "backend": {
+                "remote": {
+                    "organization": os.environ["TERRAFORM_ORGANIZATION"],
+                    "workspaces": {
+                        "name": os.environ["TERRAFORM_WORKSPACE"]
+                    }
                 }
             }
         }
