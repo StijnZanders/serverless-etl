@@ -20,6 +20,8 @@ def test(arg):
     import pandas as pd
     from datetime import datetime
 
+    print("Test")
+
     df = pd.DataFrame([[datetime.now(), arg]], columns=["current_timestamp", "message"])
     df.to_gbq("test_dataset.test_table", if_exists="append")
 
