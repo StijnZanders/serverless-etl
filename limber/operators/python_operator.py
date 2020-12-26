@@ -1,10 +1,14 @@
 import os
 from ..models.operator import Operator
 import inspect
+import shutil
+import hashlib
+import zipfile
+import stat
 
 class PythonOperator(Operator):
 
-    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, requirements: [], provide_context = False):
+    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, requirements: [], provide_context=False):
         super().__init__()
 
         self.dag = dag
@@ -28,6 +32,22 @@ class PythonOperator(Operator):
 
     def _write_cloud_function_code(self, folder):
 
+        task_folder = f"{folder}/{self.dag.dag_id}/{self.task_id}"
+        shutil.rmtree(task_folder, ignore_errors=True)
+
+        self.write_main(task_folder)
+        self.write_requirements(task_folder)
+
+        output_path = f"{task_folder}.zip"
+
+        with zipfile.ZipFile(output_path, "w") as zip_file:
+            self.create_zip_folder(task_folder, zip_file, os.path.abspath(task_folder))
+
+        hash = hashlib.md5(open(f"{task_folder}.zip", "rb").read()).hexdigest()
+
+        return hash
+
+    def write_main(self, task_folder):
         code = inspect.getsource(self.python_callable)
 
         code += "\ndef cloudfunction_execution(event, context):\n"
@@ -54,18 +74,37 @@ class PythonOperator(Operator):
         code += "\n    for output in outputs:\n"
         code += "        call_pub_sub(output, topic_name)\n"
 
-        main = f"{folder}/{self.dag.dag_id}/{self.task_id}/main.py"
+        main = f"{task_folder}/main.py"
         os.makedirs(os.path.dirname(main), exist_ok=True)
 
         with open(main, "w") as file:
             file.write(code)
 
-        requirements = f"{folder}/{self.dag.dag_id}/{self.task_id}/requirements.txt"
+    def write_requirements(self, task_folder):
+        requirements = f"{task_folder}/requirements.txt"
 
-        self.requirements.extend(["google-cloud","google-cloud-pubsub"])
+        self.requirements.extend(["google-cloud", "google-cloud-pubsub"])
 
-        with open(requirements,"w") as file:
+        with open(requirements, "w") as file:
             file.write("\n".join(self.requirements))
+
+    def create_zip_folder(self, path, zip_file: zipfile, directory_root):
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                self.add_file(zip_file, os.path.join(root, file), os.path.relpath(f"{root}/{file}", directory_root))
+
+    def add_file(self, zip_file: zipfile, file_path, zip_path=None):
+        permission = 0o555 if os.access(file_path, os.X_OK) else 0o444
+        zip_info = zipfile.ZipInfo.from_file(file_path, zip_path)
+        zip_info.date_time = (2019, 1, 1, 0, 0, 0)
+        zip_info.external_attr = (stat.S_IFREG | permission) << 16
+        with open(file_path, "rb") as fp:
+            zip_file.writestr(
+                zip_info,
+                fp.read(),
+                compress_type=zipfile.ZIP_DEFLATED,
+                compresslevel=9,
+            )
 
     def _write_to_pub_sub_code(self, message, topic_name):
         from google.cloud import pubsub_v1
@@ -82,10 +121,9 @@ class PythonOperator(Operator):
 
     def get_terraform_json(self, *, folder) -> {}:
 
-        self._write_cloud_function_code(folder=folder)
+        hash = self._write_cloud_function_code(folder=folder)
 
         source_dir = f"{self.dag.dag_id}/{self.task_id}"
-        file_path = f"{self.dag.dag_id}/{self.task_id}.zip"
 
         if len(self.upstream_tasks) > 0:
             trigger_resource = f"task_{self.dag.dag_id}_{self.upstream_tasks[0]}"
@@ -93,21 +131,12 @@ class PythonOperator(Operator):
             trigger_resource = f"dag_{self.dag.dag_id}"
 
         configuration = {
-            "data": {
-                "archive_file": [{
-                    f"task_{self.task_id}": {
-                        "type": "zip",
-                        "source_dir": source_dir,
-                        "output_path": file_path
-                    }
-                }]
-            },
             "resource": {
                 "google_storage_bucket_object": [{
                     f"task_{self.task_id}": {
-                        "name": file_path+"#${data.archive_file.task_"+self.task_id+".output_md5}",
+                        "name": f"{source_dir}_{hash}.zip",
                         "bucket": "${google_storage_bucket.bucket.name}",
-                        "source": file_path
+                        "source": f"{source_dir}.zip"
                     }
                 }],
                 "google_cloudfunctions_function": [{
