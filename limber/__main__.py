@@ -2,10 +2,10 @@ import click
 from dotenv import load_dotenv
 import os
 import yaml
-import subprocess
 import json
 from pathlib import Path
 from .cli.generate_terraform import terraform
+from .cli.utils.terraform import combine_configurations
 load_dotenv()
 
 TERRAFORM_DIRECTORY = "terraform_plan"
@@ -29,6 +29,45 @@ def load_environment_variables():
 
     os.environ["TERRAFORM_ORGANIZATION"] = yaml_config["terraform"]["organization"]
     os.environ["TERRAFORM_WORKSPACE"] = yaml_config["terraform"]["workspace"]
+    os.environ["TERRAFORM_SECRETS"] = json.dumps(yaml_config["terraform"]["secrets"])
+
+
+def get_secrets():
+
+    secrets = json.loads(os.environ["TERRAFORM_SECRETS"])
+
+    secret_configs = []
+
+    for secret_name in secrets:
+        secret_config = {
+            "resource": {
+                "google_secret_manager_secret": [{
+                    secret_name: {
+                        "secret_id": secret_name,
+                        "replication": {
+                            "automatic": True
+                        }
+                    }
+                }],
+                "google_secret_manager_secret_version": [{
+                    f"{secret_name}-version": {
+                        "secret": f"${{google_secret_manager_secret.{secret_name}.id}}",
+                        "secret_data": f"${{var.{secret_name}}}"
+                    }
+                }]
+            },
+            "variable": {
+                f"{secret_name}": [{
+                    "type": "string"
+                }]
+            }
+        }
+
+        secret_configs.append(secret_config)
+
+    config = combine_configurations(secret_configs)
+
+    return config
 
 
 @cli.command("init")
@@ -48,11 +87,10 @@ def init():
 
     config = {
         "provider": {
-            yaml_config["cloud"]["provider"]:
-                {
-                    "project": yaml_config["cloud"]["project"],
-                    "region": yaml_config["cloud"]["region"]
-                }
+            yaml_config["cloud"]["provider"]: {
+                "project": yaml_config["cloud"]["project"],
+                "region": yaml_config["cloud"]["region"]
+            }
         },
         "resource": {
             "google_storage_bucket": {
@@ -60,6 +98,7 @@ def init():
                     "name": yaml_config["cloud"]["default_bucket"]
                 }
             }
+
         },
         "terraform": {
             "backend": {
@@ -70,8 +109,16 @@ def init():
                     }
                 }
             }
-        }
+        },
+        "variable": {}
     }
+
+    secrets = get_secrets()
+    for resource in secrets["resource"]:
+        config["resource"][resource] = secrets["resource"][resource]
+
+    for variable in secrets["variable"]:
+        config["variable"][variable] = secrets["variable"][variable]
 
     provider_config = f"{TERRAFORM_DIRECTORY}/provider.tf.json"
     with open(provider_config,"w") as file:
