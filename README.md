@@ -20,6 +20,7 @@ Google Cloud APIs enabled
 2. PubSub API
 3. CloudScheduler API
 4. Cloud Build API
+5. Secret manager API
 
 Other
 1. Create app engine in your project: https://console.cloud.google.com/appengine
@@ -30,3 +31,4 @@ Service account needed roles:
 3. Cloud Scheduler Admin
 4. Cloud Functions Developer
 5. Storage Admin
+6. Secret Manager Admin
