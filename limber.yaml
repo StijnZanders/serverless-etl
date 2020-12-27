@@ -7,4 +7,4 @@ cloud:
 terraform:
     organization: StijnZanders
     workspace: limber
-    secrets: ["UNTAPPD_CLIENT_ID", "UNTAPPD_CLIENT_SECRET"]
+    secrets: ["TEST_CLIENT_ID", "TEST_CLIENT_SECRET"]
