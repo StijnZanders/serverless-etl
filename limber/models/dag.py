@@ -11,13 +11,8 @@ class DAG:
         self.description=description
         self.default_args=default_args
         self.schedule_interval=schedule_interval
-
         _, filename, line, function, _, _ = inspect.stack()[1]
-
         self.filename = filename
-
-
-        pass
 
     def get_terraform_json(self) -> {}:
 
