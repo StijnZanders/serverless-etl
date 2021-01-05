@@ -36,13 +36,13 @@ class PythonOperator(Operator):
         shutil.rmtree(task_folder, ignore_errors=True)
 
         self._write_plugins_folder(task_folder)
-        self.write_main(task_folder)
-        self.write_requirements(task_folder)
+        self._write_main(task_folder)
+        self._write_requirements(task_folder)
 
         output_path = f"{task_folder}.zip"
 
         with zipfile.ZipFile(output_path, "w") as zip_file:
-            self.create_zip_folder(task_folder, zip_file, os.path.abspath(task_folder))
+            self._create_zip_folder(task_folder, zip_file, os.path.abspath(task_folder))
 
         hash = hashlib.md5(open(f"{task_folder}.zip", "rb").read()).hexdigest()
 
@@ -52,11 +52,10 @@ class PythonOperator(Operator):
         shutil.copytree("plugins", f"{task_folder}/plugins")
         shutil.copytree("dags", f"{task_folder}/dags")
 
-    def write_main(self, task_folder):
+    def _write_main(self, task_folder):
 
         module_name = self.dag.filename.replace("\\", ".").replace(".py", "")
-
-        code = f"from {module_name} import {self.python_callable.__name__}\n\n"#inspect.getsource(self.python_callable)
+        code = f"from {module_name} import {self.python_callable.__name__}\n\n"
 
         code += "def cloudfunction_execution(event, context):\n"
 
@@ -88,7 +87,7 @@ class PythonOperator(Operator):
         with open(main, "w") as file:
             file.write(code)
 
-    def write_requirements(self, task_folder):
+    def _write_requirements(self, task_folder):
         target_file = f"{task_folder}/requirements.txt"
 
         requirements_file_name = "requirements.txt"
@@ -101,12 +100,12 @@ class PythonOperator(Operator):
         with open(target_file, "w") as file:
             file.write("\n".join(requirements))
 
-    def create_zip_folder(self, path, zip_file: zipfile, directory_root):
+    def _create_zip_folder(self, path, zip_file: zipfile, directory_root):
         for root, dirs, files in os.walk(path):
             for file in files:
-                self.add_file(zip_file, os.path.join(root, file), os.path.relpath(f"{root}/{file}", directory_root))
+                self._add_file(zip_file, os.path.join(root, file), os.path.relpath(f"{root}/{file}", directory_root))
 
-    def add_file(self, zip_file: zipfile, file_path, zip_path=None):
+    def _add_file(self, zip_file: zipfile, file_path, zip_path=None):
         permission = 0o555 if os.access(file_path, os.X_OK) else 0o444
         zip_info = zipfile.ZipInfo.from_file(file_path, zip_path)
         zip_info.date_time = (2019, 1, 1, 0, 0, 0)
