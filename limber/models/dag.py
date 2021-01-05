@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import timedelta
+import inspect
 
 
 class DAG:
@@ -10,6 +11,11 @@ class DAG:
         self.description=description
         self.default_args=default_args
         self.schedule_interval=schedule_interval
+
+        _, filename, line, function, _, _ = inspect.stack()[1]
+
+        self.filename = filename
+
 
         pass
 

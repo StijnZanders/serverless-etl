@@ -35,6 +35,7 @@ class PythonOperator(Operator):
         task_folder = f"{folder}/{self.dag.dag_id}/{self.task_id}"
         shutil.rmtree(task_folder, ignore_errors=True)
 
+        self._write_plugins_folder(task_folder)
         self.write_main(task_folder)
         self.write_requirements(task_folder)
 
@@ -47,10 +48,17 @@ class PythonOperator(Operator):
 
         return hash
 
-    def write_main(self, task_folder):
-        code = inspect.getsource(self.python_callable)
+    def _write_plugins_folder(self, task_folder):
+        shutil.copytree("plugins", f"{task_folder}/plugins")
+        shutil.copytree("dags", f"{task_folder}/dags")
 
-        code += "\ndef cloudfunction_execution(event, context):\n"
+    def write_main(self, task_folder):
+
+        module_name = self.dag.filename.replace("\\", ".").replace(".py", "")
+
+        code = f"from {module_name} import {self.python_callable.__name__}\n\n"#inspect.getsource(self.python_callable)
+
+        code += "def cloudfunction_execution(event, context):\n"
 
         if self.provide_context:
             code += "    import base64\n" \
@@ -81,12 +89,17 @@ class PythonOperator(Operator):
             file.write(code)
 
     def write_requirements(self, task_folder):
-        requirements = f"{task_folder}/requirements.txt"
+        target_file = f"{task_folder}/requirements.txt"
 
-        self.requirements.extend(["google-cloud", "google-cloud-pubsub"])
+        requirements_file_name = "requirements.txt"
 
-        with open(requirements, "w") as file:
-            file.write("\n".join(self.requirements))
+        with open(requirements_file_name, "r") as requirements_file:
+            requirements = requirements_file.read().split("\n")
+
+        requirements.extend(["google-cloud", "google-cloud-pubsub", "limber"])
+
+        with open(target_file, "w") as file:
+            file.write("\n".join(requirements))
 
     def create_zip_folder(self, path, zip_file: zipfile, directory_root):
         for root, dirs, files in os.walk(path):
