@@ -21,7 +21,7 @@ with open ("README.md", "r") as readme:
 
 setuptools.setup(
     name="limber",
-    version="0.0.33",
+    version="0.0.35",
     entry_points={
             'console_scripts': ['limber=limber.__main__:cli'],
         },
