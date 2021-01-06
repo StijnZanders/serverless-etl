@@ -8,7 +8,7 @@ import stat
 
 class PythonOperator(Operator):
 
-    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, requirements: [], provide_context=False):
+    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, provide_context=False):
         super().__init__()
 
         self.dag = dag
@@ -16,7 +16,6 @@ class PythonOperator(Operator):
         self.description = description
         self.python_callable = python_callable
         self.op_kwargs = op_kwargs
-        self.requirements = requirements
         self.provide_context = provide_context
 
     def _get_func_parameters(self, kwargs) -> str:

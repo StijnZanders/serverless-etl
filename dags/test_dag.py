@@ -18,8 +18,7 @@ test_task = PythonOperator(
     task_id="test_task",
     description="Test task",
     python_callable=test,
-    op_kwargs={'arg': 'great test'},
-    requirements=["pandas==1.0.0", "pandas_gbq==0.14.0"]
+    op_kwargs={'arg': 'great test'}
 )
 
 test_task2 = PythonOperator(
@@ -27,8 +26,7 @@ test_task2 = PythonOperator(
     task_id="test_task2",
     description="Test task2",
     python_callable=test_multiple_outputs,
-    op_kwargs={'arg': 'great test2'},
-    requirements=["pandas==1.0.0", "pandas_gbq==0.14.0"]
+    op_kwargs={'arg': 'great test2'}
 )
 
 test_task3 = PythonOperator(
@@ -37,8 +35,7 @@ test_task3 = PythonOperator(
     description="Test task3",
     python_callable=test_with_context,
     provide_context=True,
-    op_kwargs={'arg': 'great test3'},
-    requirements=["pandas==1.0.0", "pandas_gbq==0.14.0"]
+    op_kwargs={'arg': 'great test3'}
 )
 
 test_task >> test_task2
