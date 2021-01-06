@@ -53,7 +53,7 @@ class PythonOperator(Operator):
 
     def _write_main(self, task_folder):
 
-        module_name = self.dag.filename.replace("\\", ".").replace(".py", "")
+        module_name = self.dag.filename.replace("/",".").replace("\\", ".").replace(".py", "")
         code = f"from {module_name} import {self.python_callable.__name__}\n\n"
 
         code += "def cloudfunction_execution(event, context):\n"
