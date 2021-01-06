@@ -51,7 +51,6 @@ class terraform:
             spec = importlib.util.spec_from_loader(mod_name, loader)
             new_module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = new_module
-            loader.exec_module(new_module)
             mods.append(new_module)
 
         top_level_dags = [
