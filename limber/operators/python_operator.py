@@ -8,7 +8,7 @@ import stat
 
 class PythonOperator(Operator):
 
-    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, provide_context=False):
+    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, provide_context=False, memory=256):
         super().__init__()
 
         self.dag = dag
@@ -17,6 +17,7 @@ class PythonOperator(Operator):
         self.python_callable = python_callable
         self.op_kwargs = op_kwargs
         self.provide_context = provide_context
+        self.memory = memory
 
     def _get_func_parameters(self, kwargs) -> str:
 
@@ -155,7 +156,7 @@ class PythonOperator(Operator):
                         "name": f"{self.dag.dag_id}-{self.task_id}",
                         "description": self.description,
                         "runtime": "python37",
-                        "available_memory_mb": 256,
+                        "available_memory_mb": self.memory,
                         "service_account_email": os.environ["CLOUD_FUNCTIONS_SERVICE_ACCOUNT_EMAIL"],
                         "source_archive_bucket": "${google_storage_bucket.bucket.name}",
                         "source_archive_object": "${google_storage_bucket_object.task_"+self.task_id+".name}",
