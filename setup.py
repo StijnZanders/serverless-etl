@@ -21,7 +21,7 @@ with open ("README.md", "r") as readme:
 
 setuptools.setup(
     name="limber",
-    version="0.0.40",
+    version="0.0.41",
     entry_points={
             'console_scripts': ['limber=limber.__main__:cli'],
         },
@@ -30,6 +30,8 @@ setuptools.setup(
         "pyyaml==5.3.1",
         "click==7.1.2",
         "python-dotenv==0.15.0",
+        "google-cloud-pubsub==2.2.0",
+        "google-cloud==0.34.0"
     ],
     author="Stijn Zanders",
     author_email="zandersstijn@gmail.com",
