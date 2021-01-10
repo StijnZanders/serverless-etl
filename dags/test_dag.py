@@ -26,7 +26,8 @@ test_task2 = PythonOperator(
     task_id="test_task2",
     description="Test task2",
     python_callable=test_multiple_outputs,
-    op_kwargs={'arg': 'great test2'}
+    op_kwargs={'arg': 'great test2'},
+    memory=128
 )
 
 test_task3 = PythonOperator(

@@ -95,8 +95,6 @@ class PythonOperator(Operator):
         with open(requirements_file_name, "r") as requirements_file:
             requirements = requirements_file.read().split("\n")
 
-        requirements.extend(["google-cloud", "google-cloud-pubsub", "limber"])
-
         with open(target_file, "w") as file:
             file.write("\n".join(requirements))
 
