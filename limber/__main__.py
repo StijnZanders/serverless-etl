@@ -95,7 +95,8 @@ def init():
         "resource": {
             "google_storage_bucket": {
                 "bucket": {
-                    "name": yaml_config["cloud"]["default_bucket"]
+                    "name": yaml_config["cloud"]["default_bucket"],
+                    "location": yaml_config["cloud"]["default_bucket_location"]
                 }
             }
 

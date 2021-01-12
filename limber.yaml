@@ -3,6 +3,7 @@ cloud:
     project: "serverless-etl-test"
     region: "europe-west1"
     default_bucket: "stijnzanders-serverless-etl-bucket"
+    default_bucket_location: "EU"
     cloud_functions_service_account: "cloudfunctions@serverless-etl-test.iam.gserviceaccount.com"
 terraform:
     organization: StijnZanders
