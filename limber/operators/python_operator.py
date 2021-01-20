@@ -142,14 +142,14 @@ class PythonOperator(Operator):
 
         configuration = {
             "resource": {
-                "google_storage_bucket_object": [{
+                "google_storage_bucket_object": {
                     f"task_{self.task_id}": {
                         "name": f"{source_dir}_{hash}.zip",
                         "bucket": "${google_storage_bucket.bucket.name}",
                         "source": f"{source_dir}.zip"
                     }
-                }],
-                "google_cloudfunctions_function": [{
+                },
+                "google_cloudfunctions_function": {
                     f"function_{self.task_id}": {
                         "name": f"{self.dag.dag_id}-{self.task_id}",
                         "description": self.description,
@@ -164,12 +164,12 @@ class PythonOperator(Operator):
                         },
                         "entry_point": "cloudfunction_execution"
                     }
-                }],
-                "google_pubsub_topic": [{
+                },
+                "google_pubsub_topic": {
                     f"task_{self.dag.dag_id}_{self.task_id}": {
                         "name": f"task_{self.dag.dag_id}_{self.task_id}"
                     }
-                }]
+                }
             }
         }
 
