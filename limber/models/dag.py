@@ -18,11 +18,11 @@ class DAG:
 
         configuration = {
             "resource": {
-                "google_pubsub_topic": [{
+                "google_pubsub_topic": {
                     f"dag_{self.dag_id}": {
                         "name": f"dag_{self.dag_id}"
                     }
-                }], "google_cloud_scheduler_job": [{
+                }, "google_cloud_scheduler_job": {
                     f"job_{self.dag_id}": {
                         "name": self.dag_id,
                         "description": self.description,
@@ -32,7 +32,7 @@ class DAG:
                             "data": "dGVzdA=="
                         }
                     }
-                }]
+                }
             }
         }
 
