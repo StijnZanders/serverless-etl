@@ -8,7 +8,8 @@ import stat
 
 class PythonOperator(Operator):
 
-    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, provide_context=False, memory=256):
+    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, provide_context=False, memory=256,
+                 timeout=60):
         super().__init__()
 
         self.dag = dag
@@ -18,6 +19,7 @@ class PythonOperator(Operator):
         self.op_kwargs = op_kwargs
         self.provide_context = provide_context
         self.memory = memory
+        self.timeout = timeout
 
     def _get_func_parameters(self, kwargs) -> str:
 
@@ -142,19 +144,20 @@ class PythonOperator(Operator):
 
         configuration = {
             "resource": {
-                "google_storage_bucket_object": [{
+                "google_storage_bucket_object": {
                     f"task_{self.task_id}": {
                         "name": f"{source_dir}_{hash}.zip",
                         "bucket": "${google_storage_bucket.bucket.name}",
                         "source": f"{source_dir}.zip"
                     }
-                }],
-                "google_cloudfunctions_function": [{
+                },
+                "google_cloudfunctions_function": {
                     f"function_{self.task_id}": {
                         "name": f"{self.dag.dag_id}-{self.task_id}",
                         "description": self.description,
                         "runtime": "python37",
                         "available_memory_mb": self.memory,
+                        "timeout": self.timeout,
                         "service_account_email": os.environ["CLOUD_FUNCTIONS_SERVICE_ACCOUNT_EMAIL"],
                         "source_archive_bucket": "${google_storage_bucket.bucket.name}",
                         "source_archive_object": "${google_storage_bucket_object.task_"+self.task_id+".name}",
@@ -164,12 +167,12 @@ class PythonOperator(Operator):
                         },
                         "entry_point": "cloudfunction_execution"
                     }
-                }],
-                "google_pubsub_topic": [{
+                },
+                "google_pubsub_topic": {
                     f"task_{self.dag.dag_id}_{self.task_id}": {
                         "name": f"task_{self.dag.dag_id}_{self.task_id}"
                     }
-                }]
+                }
             }
         }
 

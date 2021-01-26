@@ -36,7 +36,8 @@ test_task3 = PythonOperator(
     description="Test task3",
     python_callable=test_with_context,
     provide_context=True,
-    op_kwargs={'arg': 'great test3'}
+    op_kwargs={'arg': 'great test3'},
+    timeout=120,
 )
 
 test_task >> test_task2

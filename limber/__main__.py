@@ -41,25 +41,25 @@ def get_secrets():
     for secret_name in secrets:
         secret_config = {
             "resource": {
-                "google_secret_manager_secret": [{
+                "google_secret_manager_secret": {
                     secret_name: {
                         "secret_id": secret_name,
                         "replication": {
                             "automatic": True
                         }
                     }
-                }],
-                "google_secret_manager_secret_version": [{
+                },
+                "google_secret_manager_secret_version": {
                     f"{secret_name}-version": {
                         "secret": f"${{google_secret_manager_secret.{secret_name}.id}}",
                         "secret_data": f"${{var.{secret_name}}}"
                     }
-                }]
+                }
             },
             "variable": {
-                f"{secret_name}": [{
+                f"{secret_name}": {
                     "type": "string"
-                }]
+                }
             }
         }
 
