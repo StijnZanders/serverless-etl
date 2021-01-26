@@ -8,7 +8,7 @@ import stat
 
 class PythonOperator(Operator):
 
-    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, provide_context=False, memory=256):
+    def __init__(self, *, dag, task_id, description, python_callable, op_kwargs, provide_context=False, memory=256, throttle_rate_limits=None, throttle_retry_config=None):
         super().__init__()
 
         self.dag = dag
@@ -18,6 +18,8 @@ class PythonOperator(Operator):
         self.op_kwargs = op_kwargs
         self.provide_context = provide_context
         self.memory = memory
+        self.throttle_rate_limits = throttle_rate_limits
+        self.throttle_retry_config = throttle_retry_config
 
     def _get_func_parameters(self, kwargs) -> str:
 
@@ -135,11 +137,6 @@ class PythonOperator(Operator):
 
         source_dir = f"{self.dag.dag_id}/{self.task_id}"
 
-        if len(self.upstream_tasks) > 0:
-            trigger_resource = f"task_{self.dag.dag_id}_{self.upstream_tasks[0]}"
-        else:
-            trigger_resource = f"dag_{self.dag.dag_id}"
-
         configuration = {
             "resource": {
                 "google_storage_bucket_object": {
@@ -158,10 +155,6 @@ class PythonOperator(Operator):
                         "service_account_email": os.environ["CLOUD_FUNCTIONS_SERVICE_ACCOUNT_EMAIL"],
                         "source_archive_bucket": "${google_storage_bucket.bucket.name}",
                         "source_archive_object": "${google_storage_bucket_object.task_"+self.task_id+".name}",
-                        "event_trigger": {
-                            "event_type": "providers/cloud.pubsub/eventTypes/topic.publish",
-                            "resource": trigger_resource
-                        },
                         "entry_point": "cloudfunction_execution"
                     }
                 },
@@ -173,4 +166,38 @@ class PythonOperator(Operator):
             }
         }
 
+        if self.throttle_retry_config or self.throttle_rate_limits:
+            self._add_cloud_tasks(configuration)
+        else:
+            self._set_event_trigger(configuration)
+
         return configuration
+
+    def _add_cloud_tasks(self, configuration):
+        cloud_function = configuration["resource"]["google_cloudfunctions_function"][f"function_{self.task_id}"]
+
+        cloud_function["trigger_http"] = True
+        cloud_function["ingress_settings"] = "ALLOW_INTERNAL_ONLY"
+
+        cloud_task_config = {
+            f"cloud_task_queue_function_{self.task_id}": {
+                "name": f"cloud_task_queue_function_{self.task_id}",
+                "location": "${local.region}",
+                "rate_limits": self.throttle_rate_limits,
+                "retry_config": self.throttle_retry_config
+            }
+        }
+
+        configuration["resource"]["google_cloud_tasks_queue"] = cloud_task_config
+
+    def _set_event_trigger(self, configuration):
+        cloud_function = configuration["resource"]["google_cloudfunctions_function"][f"function_{self.task_id}"]
+
+        if len(self.upstream_tasks) > 0:
+            trigger_resource = f"task_{self.dag.dag_id}_{self.upstream_tasks[0]}"
+        else:
+            trigger_resource = f"dag_{self.dag.dag_id}"
+
+        cloud_function["event_trigger"] = {}
+        cloud_function["event_trigger"]["event_type"] = "providers/cloud.pubsub/eventTypes/topic.publish"
+        cloud_function["event_trigger"]["resource"] = trigger_resource

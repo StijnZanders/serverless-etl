@@ -39,6 +39,28 @@ test_task3 = PythonOperator(
     op_kwargs={'arg': 'great test3'}
 )
 
+test_task4 = PythonOperator(
+    dag=test_dag,
+    task_id="test_task4",
+    description="Throttled task",
+    python_callable=test,
+    provide_context=True,
+    throttle_rate_limits={
+        "max_concurrent_dispatches": 3,
+        "max_dispatches_per_second": 2
+    },
+    throttle_retry_config={
+        "max_attempts": 5,
+        "max_retry_duration": "4s",
+        "max_backoff": "3s",
+        "min_backoff": "2s",
+        "max_doublings": 1
+    },
+    op_kwargs={}
+)
+
 test_task >> test_task2
 
 test_task2 >> test_task3
+
+test_task3 >> test_task4

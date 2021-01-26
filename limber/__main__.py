@@ -86,6 +86,11 @@ def init():
         yaml_config = yaml.safe_load(file.read())
 
     config = {
+        "locals": {
+            "provider": yaml_config["cloud"]["provider"],
+            "project": yaml_config["cloud"]["project"],
+            "region": yaml_config["cloud"]["region"]
+        },
         "provider": {
             yaml_config["cloud"]["provider"]: {
                 "project": yaml_config["cloud"]["project"],
